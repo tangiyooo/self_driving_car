@@ -1,0 +1,57 @@
+import serial
+import time
+
+# 시리얼 포트를 블루투스 모듈과 연결된 COM 포트로 변경하세요.
+# 예: COM7, /dev/rfcomm0 등
+arduino = serial.Serial('블루투스_COM_포트', 9600)
+time.sleep(2) # 아두이노가 재시작하는 동안 기다림
+
+try:
+    # 모터를 5초간 한 방향으로 회전
+    print("모터를 한 방향으로 5초간 회전합니다.")
+    arduino.write(b'1')
+    time.sleep(5)
+
+    # 모터를 5초간 반대 방향으로 회전
+    print("모터를 반대 방향으로 5초간 회전합니다.")
+    arduino.write(b'0')
+    time.sleep(5)
+
+    # 모터 정지
+    print("모터를 정지합니다.")
+    arduino.write(b'x')
+    
+finally:
+    arduino.close() # 시리얼 연결 종료
+##########################################################
+#아두이노 코드
+/*HC-05 VCC -> 아두이노 5V
+HC-05 GND -> 아두이노 GND
+HC-05 TXD -> 아두이노 RX (핀 0)
+HC-05 RXD -> 아두이노 TX (핀 1) (1kΩ 저항을 통해 연결하는 것이 좋을 수 있음)*/
+// 모터 드라이버의 IN 핀들을 아두이노의 핀에 연결합니다.
+int in1 = 2;
+int in2 = 3;
+
+void setup() {
+  // 핀들을 출력으로 설정합니다.
+  pinMode(in1, OUTPUT);
+  pinMode(in2, OUTPUT);
+  Serial.begin(9600); // 시리얼 통신 시작
+}
+
+void loop() {
+  if (Serial.available() > 0) {
+    char receivedChar = Serial.read(); // 수신된 데이터 읽기
+    if (receivedChar == '1') {
+      digitalWrite(in1, HIGH); // 모터 한 방향으로 회전
+      digitalWrite(in2, LOW);
+    } else if (receivedChar == '0') {
+      digitalWrite(in1, LOW); // 모터 반대 방향으로 회전
+      digitalWrite(in2, HIGH);
+    } else if (receivedChar == 'x') {
+      digitalWrite(in1, LOW); // 모터 정지
+      digitalWrite(in2, LOW);
+    }
+  }
+}
